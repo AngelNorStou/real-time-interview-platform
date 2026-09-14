@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  INTERVIEWER
+  CANDIDATE
+}
+
+enum InterviewStatus {
+  DRAFT
+  SCHEDULED
+  READY
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum Recommendation {
+  STRONG_HIRE
+  HIRE
+  NO_HIRE
+  STRONG_NO_HIRE
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  interviewsAsInterviewer Interview[] @relation("Interviewer")
+  interviewsAsCandidate   Interview[] @relation("Candidate")
+  feedback                Feedback[]
+  auditLogs               AuditLog[]
+}
+
+model Interview {
+  id            String          @id @default(uuid())
+  title         String
+  description   String?
+  scheduledAt   DateTime
+  duration      Int
+  status        InterviewStatus @default(SCHEDULED)
+  streamCallId  String?         @unique
+
+  interviewerId String
+  candidateId   String
+
+  interviewer User @relation("Interviewer", fields: [interviewerId], references: [id])
+  candidate   User @relation("Candidate", fields: [candidateId], references: [id])
+
+  invitations Invitation[]
+  feedback    Feedback[]
+  auditLogs   AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invitation {
+  id          String            @id @default(uuid())
+  interviewId String
+  email       String
+  token       String            @unique
+  status      InvitationStatus  @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime          @default(now())
+
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+}
+
+model Feedback {
+  id                  String          @id @default(uuid())
+  interviewId         String
+  authorId            String
+  rating              Int
+  technicalScore      Int?
+  communicationScore  Int?
+  recommendation      Recommendation?
+  comments            String?
+  createdAt           DateTime        @default(now())
+
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id])
+}
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  interviewId String?
+  actorId     String?
+  action      String
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+
+  interview Interview? @relation(fields: [interviewId], references: [id])
+  actor     User?      @relation(fields: [actorId], references: [id])
+}
+
+model ProcessedEvent {
+  id          String   @id @default(uuid())
+  eventId     String   @unique
+  eventType   String
+  processedAt DateTime @default(now())
+}
