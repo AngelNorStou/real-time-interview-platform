@@ -76,18 +76,20 @@ model ProcessedEvent {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model User {
-  id                                      String      @id
-  name                                    String
-  email                                   String      @unique
-  passwordHash                            String
-  role                                    UserRole
-  createdAt                               DateTime    @default(now())
-  updatedAt                               DateTime
-  AuditLog                                AuditLog[]
-  Feedback                                Feedback[]
+  id          String   @id @default(uuid())
+  clerkId     String   @unique
+  email       String   @unique
+  name        String?
+  role        UserRole @default(CANDIDATE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  AuditLog                            AuditLog[]
+  Feedback                            Feedback[]
   Interview_Interview_candidateIdToUser   Interview[] @relation("Interview_candidateIdToUser")
   Interview_Interview_interviewerIdToUser Interview[] @relation("Interview_interviewerIdToUser")
 }
+
 
 enum InterviewStatus {
   DRAFT
