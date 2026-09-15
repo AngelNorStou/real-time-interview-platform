@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model AuditLog {
+  id          String     @id
+  interviewId String?
+  actorId     String?
+  action      String
+  metadata    Json?
+  createdAt   DateTime   @default(now())
+  User        User?      @relation(fields: [actorId], references: [id])
+  Interview   Interview? @relation(fields: [interviewId], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Feedback {
+  id                 String          @id
+  interviewId        String
+  authorId           String
+  rating             Int
+  technicalScore     Int?
+  communicationScore Int?
+  recommendation     Recommendation?
+  comments           String?
+  createdAt          DateTime        @default(now())
+  User               User            @relation(fields: [authorId], references: [id])
+  Interview          Interview       @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Interview {
+  id                                 String          @id
+  title                              String
+  description                        String?
+  scheduledAt                        DateTime
+  duration                           Int
+  status                             InterviewStatus @default(SCHEDULED)
+  streamCallId                       String?         @unique
+  interviewerId                      String
+  candidateId                        String
+  createdAt                          DateTime        @default(now())
+  updatedAt                          DateTime
+  AuditLog                           AuditLog[]
+  Feedback                           Feedback[]
+  User_Interview_candidateIdToUser   User            @relation("Interview_candidateIdToUser", fields: [candidateId], references: [id])
+  User_Interview_interviewerIdToUser User            @relation("Interview_interviewerIdToUser", fields: [interviewerId], references: [id])
+  Invitation                         Invitation[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Invitation {
+  id          String           @id
+  interviewId String
+  email       String
+  token       String           @unique
+  status      InvitationStatus @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  Interview   Interview        @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ProcessedEvent {
+  id          String   @id
+  eventId     String   @unique
+  eventType   String
+  processedAt DateTime @default(now())
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model User {
+  id                                      String      @id
+  name                                    String
+  email                                   String      @unique
+  passwordHash                            String
+  role                                    UserRole
+  createdAt                               DateTime    @default(now())
+  updatedAt                               DateTime
+  AuditLog                                AuditLog[]
+  Feedback                                Feedback[]
+  Interview_Interview_candidateIdToUser   Interview[] @relation("Interview_candidateIdToUser")
+  Interview_Interview_interviewerIdToUser Interview[] @relation("Interview_interviewerIdToUser")
+}
+
+enum InterviewStatus {
+  DRAFT
+  SCHEDULED
+  READY
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum Recommendation {
+  STRONG_HIRE
+  HIRE
+  NO_HIRE
+  STRONG_NO_HIRE
+}
+
+enum UserRole {
+  ADMIN
+  INTERVIEWER
+  CANDIDATE
+}
