@@ -1,0 +1,21 @@
+info:
+  name: Update an Interview
+  type: http
+  seq: 2
+
+http:
+  method: PATCH
+  url: http://localhost:3000/interviews/f6259ac0-ff3d-426b-953e-31363fb6856a/cancel
+  body:
+    type: json
+    data: '{ "title": "Frontend Engineer Screen I" }'
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhNDI4ZjU4YS04NTk2LTRmODUtODEyNC0xNTBhMDNmNTk1OGEiLCJlbWFpbCI6ImludGVydmlld2VyQGV4YW1wbGUuY29tIiwicm9sZSI6IklOVEVSVklFV0VSIiwiaWF0IjoxNzg5NDQ2NTUxLCJleHAiOjE3ODk1MzI5NTF9.1WLXpaDgZq6hdAyztj-M22QuZU9dyz2v8lMhkINARco
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
