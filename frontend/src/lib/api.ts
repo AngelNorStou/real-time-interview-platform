@@ -109,3 +109,15 @@ export const cancelInterview = (id: string, token: string | null) =>
   apiFetch<Interview>(`/interviews/${id}/cancel`, token, { method: 'PATCH' });
 
 export { ApiError };
+
+export interface StreamTokenResponse {
+  token: string;
+  callId: string;
+  callType: string;
+}
+
+export const getStreamToken = (interviewId: string, token: string | null) =>
+  apiFetch<StreamTokenResponse>(`/interviews/${interviewId}/stream-token`, token);
+
+export const startInterview = (interviewId: string, token: string | null) =>
+  apiFetch<Interview>(`/interviews/${interviewId}/start`, token, { method: 'PATCH' });

@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getInterview } from '@/lib/api';
+import { getNow } from '@/lib/time';
 import { StatusBadge } from '@/components/interviews/status-badge';
 import { JoinInterviewButton } from '@/components/interviews/join-interview-button';
 import { CancelInterviewButton } from '@/components/interviews/cancel-interview-button';
@@ -17,6 +18,7 @@ export default async function InterviewDetailsPage({
 
   const token = await getToken();
   const interview = await getInterview(id, token);
+  const now = getNow();
 
   const isCancelable =
     interview.status !== 'CANCELLED' && interview.status !== 'COMPLETED';
@@ -52,7 +54,7 @@ export default async function InterviewDetailsPage({
         </dl>
 
         <div className="mt-6 flex items-center gap-2">
-          <JoinInterviewButton interview={interview} />
+          <JoinInterviewButton interview={interview} now={now} />
           {isCancelable && <CancelInterviewButton interviewId={interview.id} />}
         </div>
       </div>

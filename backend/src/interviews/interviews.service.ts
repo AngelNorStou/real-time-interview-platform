@@ -109,6 +109,19 @@ export class InterviewsService {
     });
   }
 
+  async start(id: string, requester: User) {
+    const interview = await this.findById(id, requester);
+
+    if (interview.status !== InterviewStatus.SCHEDULED) {
+      return interview; // already in progress, completed, or cancelled — no-op
+    }
+
+    return this.prisma.interview.update({
+      where: { id },
+      data: { status: InterviewStatus.IN_PROGRESS },
+    });
+  }  
+
   async remove(id: string, requester: User) {
     const interview = await this.findById(id, requester);
     this.assertInterviewerOrAdmin(interview, requester);

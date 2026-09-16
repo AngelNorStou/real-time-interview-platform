@@ -22,12 +22,12 @@ export function CreateInterviewModal({ onClose }: { onClose: () => void }) {
   const inputClass =
     'mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400';
 
-  // toLocaleString-based helper, called in render — safe because the
-  // impure Date call lives inside getNow(), out of the compiler's view.
-  const minDateTimeLocal = new Date(getNow() + 5 * 60 * 1000)
-    .toISOString()
-    .slice(0, 16);
+    function toLocalDateTimeString(date: Date) {
+      const pad = (n: number) => String(n).padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
 
+    const minDateTimeLocal = toLocalDateTimeString(new Date(getNow() + 5 * 60 * 1000));
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);

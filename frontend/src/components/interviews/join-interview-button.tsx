@@ -3,16 +3,28 @@
 import Link from 'next/link';
 import { Interview } from '@/lib/api';
 
-export function JoinInterviewButton({ interview }: { interview: Interview }) {
+const JOIN_WINDOW_MS = 10 * 60 * 1000; // 10 minutes before scheduled time
+
+export function JoinInterviewButton({
+  interview,
+  now,
+}: {
+  interview: Interview;
+  now: number;
+}) {
+  const scheduledTime = new Date(interview.scheduledAt).getTime();
+  const withinWindow = now >= scheduledTime - JOIN_WINDOW_MS;
+
   const canJoin =
     !!interview.streamCallId &&
-    (interview.status === 'READY' || interview.status === 'IN_PROGRESS');
+    (interview.status === 'IN_PROGRESS' ||
+      (interview.status === 'SCHEDULED' && withinWindow));
 
   if (!canJoin) {
     return (
       <button
         disabled
-        title="Available once the interview is ready to start"
+        title="Available 10 minutes before the scheduled time"
         className="rounded-full bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-500 cursor-not-allowed"
       >
         Join

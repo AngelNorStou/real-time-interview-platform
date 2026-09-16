@@ -9,9 +9,11 @@ import { CancelInterviewButton } from './cancel-interview-button';
 export function InterviewCard({
   interview,
   currentClerkId,
+  now,
 }: {
   interview: Interview;
   currentClerkId: string;
+  now: number;
 }) {
   const isInterviewer = interview.interviewer.clerkId === currentClerkId;
   const otherParty = isInterviewer ? interview.candidate : interview.interviewer;
@@ -56,7 +58,7 @@ export function InterviewCard({
         >
           View details
         </Link>
-        <JoinInterviewButton interview={interview} />
+        <JoinInterviewButton interview={interview} now={now} />
         {isCancelable && <CancelInterviewButton interviewId={interview.id} />}
       </div>
     </div>

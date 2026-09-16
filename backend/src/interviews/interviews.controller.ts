@@ -63,4 +63,9 @@ export class InterviewsController {
   remove(@Param('id') id: string, @CurrentUser() user: User) {
     return this.interviewsService.remove(id, user);
   }
+  
+  @Patch(':id/start')
+  start(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.interviewsService.start(id, user);
+  } 
 }
