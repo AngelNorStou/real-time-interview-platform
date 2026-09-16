@@ -9,7 +9,7 @@ datasource db {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model AuditLog {
-  id          String     @id
+  id          String     @id @default(uuid())
   interviewId String?
   actorId     String?
   action      String
@@ -21,7 +21,7 @@ model AuditLog {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Feedback {
-  id                 String          @id
+  id                 String          @id @default(uuid())
   interviewId        String
   authorId           String
   rating             Int
@@ -36,27 +36,29 @@ model Feedback {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Interview {
-  id                                 String          @id
-  title                              String
-  description                        String?
-  scheduledAt                        DateTime
-  duration                           Int
-  status                             InterviewStatus @default(SCHEDULED)
-  streamCallId                       String?         @unique
-  interviewerId                      String
-  candidateId                        String
-  createdAt                          DateTime        @default(now())
-  updatedAt                          DateTime
-  AuditLog                           AuditLog[]
-  Feedback                           Feedback[]
-  User_Interview_candidateIdToUser   User            @relation("Interview_candidateIdToUser", fields: [candidateId], references: [id])
-  User_Interview_interviewerIdToUser User            @relation("Interview_interviewerIdToUser", fields: [interviewerId], references: [id])
-  Invitation                         Invitation[]
+  id            String          @id @default(uuid())
+  title         String
+  description   String?
+  scheduledAt   DateTime
+  duration      Int
+  status        InterviewStatus @default(SCHEDULED)
+  streamCallId  String?         @unique
+  interviewerId String
+  candidateId   String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  AuditLog      AuditLog[]
+  Feedback      Feedback[]
+  Invitation    Invitation[]
+
+  candidate     User            @relation("Interview_candidateIdToUser", fields: [candidateId], references: [id])
+  interviewer   User            @relation("Interview_interviewerIdToUser", fields: [interviewerId], references: [id])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Invitation {
-  id          String           @id
+  id          String           @id @default(uuid())
   interviewId String
   email       String
   token       String           @unique
@@ -68,7 +70,7 @@ model Invitation {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model ProcessedEvent {
-  id          String   @id
+  id          String   @id @default(uuid())
   eventId     String   @unique
   eventType   String
   processedAt DateTime @default(now())
@@ -84,12 +86,11 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  AuditLog                            AuditLog[]
-  Feedback                            Feedback[]
-  Interview_Interview_candidateIdToUser   Interview[] @relation("Interview_candidateIdToUser")
-  Interview_Interview_interviewerIdToUser Interview[] @relation("Interview_interviewerIdToUser")
+  AuditLog               AuditLog[]
+  Feedback               Feedback[]
+  candidateInterviews    Interview[] @relation("Interview_candidateIdToUser")
+  interviewerInterviews  Interview[] @relation("Interview_interviewerIdToUser")
 }
-
 
 enum InterviewStatus {
   DRAFT

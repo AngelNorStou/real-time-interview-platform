@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthController } from './health/health.controller';
-
+import { InterviewsModule } from './interviews/interviews.module';
 
 @Module({
   imports: [
@@ -10,6 +10,7 @@ import { HealthController } from './health/health.controller';
       isGlobal: true,
     }),
     PrismaModule,
+    InterviewsModule,
 
   ],
   controllers: [HealthController],
