@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { createInterview } from '@/lib/api';
+import { getNow } from '@/lib/time';
 import Button from '@/components/Button';
 
 export function CreateInterviewModal({ onClose }: { onClose: () => void }) {
@@ -16,30 +17,45 @@ export function CreateInterviewModal({ onClose }: { onClose: () => void }) {
   const [description, setDescription] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [duration, setDuration] = useState(45);
-  const [candidateId, setCandidateId] = useState('');
+  const [candidateEmail, setCandidateEmail] = useState('');
 
   const inputClass =
     'mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400';
 
+  // toLocaleString-based helper, called in render — safe because the
+  // impure Date call lives inside getNow(), out of the compiler's view.
+  const minDateTimeLocal = new Date(getNow() + 5 * 60 * 1000)
+    .toISOString()
+    .slice(0, 16);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    if (new Date(scheduledAt).getTime() <= Date.now()) {
+      setError('Scheduled time must be in the future.');
+      return;
+    }
+
+    if (duration < 1 || duration > 480) {
+      setError('Duration must be between 1 and 480 minutes.');
+      return;
+    }
 
     startTransition(async () => {
       try {
-        setError(null);
         const token = await getToken();
-        await createInterview(
+        const interview = await createInterview(
           {
             title,
             description: description || undefined,
             scheduledAt: new Date(scheduledAt).toISOString(),
             duration,
-            candidateId,
+            candidateEmail,
           },
           token,
         );
-        router.refresh();
-        onClose();
+        router.push(`/interviews/${interview.id}`);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to create interview');
       }
@@ -56,6 +72,7 @@ export function CreateInterviewModal({ onClose }: { onClose: () => void }) {
             <label className="block text-sm font-medium text-sky-400">Title</label>
             <input
               required
+              minLength={2}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className={inputClass}
@@ -80,6 +97,7 @@ export function CreateInterviewModal({ onClose }: { onClose: () => void }) {
             <input
               required
               type="datetime-local"
+              min={minDateTimeLocal}
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
               className={inputClass}
@@ -94,6 +112,7 @@ export function CreateInterviewModal({ onClose }: { onClose: () => void }) {
               required
               type="number"
               min={1}
+              max={480}
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
               className={inputClass}
@@ -102,18 +121,18 @@ export function CreateInterviewModal({ onClose }: { onClose: () => void }) {
 
           <div>
             <label className="block text-sm font-medium text-sky-400">
-              Candidate user ID
+              Candidate email
             </label>
             <input
               required
-              value={candidateId}
-              onChange={(e) => setCandidateId(e.target.value)}
-              placeholder="UUID from the User table"
+              type="email"
+              value={candidateEmail}
+              onChange={(e) => setCandidateEmail(e.target.value)}
+              placeholder="candidate@example.com"
               className={inputClass}
             />
             <p className="mt-1 text-xs text-slate-400">
-              Temporary — until candidate search exists, copy the candidates{' '}
-              <code>id</code> from Supabase.
+              The candidate needs to have already signed up.
             </p>
           </div>
 

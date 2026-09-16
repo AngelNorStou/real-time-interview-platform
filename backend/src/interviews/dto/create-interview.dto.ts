@@ -3,10 +3,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsISO8601,
-  IsUUID,
   IsInt,
   Min,
+  IsEmail,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateInterviewDto {
   @IsString()
@@ -24,8 +25,8 @@ export class CreateInterviewDto {
   @Min(1)
   duration: number; // minutes
 
-  @IsUUID()
-  candidateId: string;
+  @IsEmail()
+  @Transform(({ value }) => value?.trim().toLowerCase())
+  candidateEmail: string;
 
-  // interviewerId is taken from the authenticated user, not the body
 }

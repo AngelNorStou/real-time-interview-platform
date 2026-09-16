@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateInterviewDto } from './dto/create-interview.dto';
@@ -14,17 +15,32 @@ export class InterviewsService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateInterviewDto, interviewer: User) {
-    return this.prisma.interview.create({
-      data: {
-        title: dto.title,
-        description: dto.description,
-        scheduledAt: new Date(dto.scheduledAt),
-        duration: dto.duration,
-        candidateId: dto.candidateId,
-        interviewerId: interviewer.id,
-      },
-      include: { candidate: true, interviewer: true },
+    const candidate = await this.prisma.user.findFirst({
+      where: { email: { equals: dto.candidateEmail, mode: 'insensitive'}},
     });
+
+    if (!candidate) {
+      throw new NotFoundException(
+        `No user found with email ${dto.candidateEmail}. They need to sign up first.`,
+      );
+    }
+
+    if (candidate.role !== 'CANDIDATE') {
+      throw new BadRequestException(
+        `${dto.candidateEmail} is not registered as a candidate.`,
+      );
+    }
+      return this.prisma.interview.create({
+        data: {
+          title: dto.title,
+          description: dto.description,
+          scheduledAt: new Date(dto.scheduledAt),
+          duration: dto.duration,
+          candidateId: candidate.id,
+          interviewerId: interviewer.id,
+        },
+        include: { candidate: true, interviewer: true },
+      });    
   }
 
   async findById(id: string, requester: User) {

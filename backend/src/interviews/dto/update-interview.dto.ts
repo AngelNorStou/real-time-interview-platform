@@ -3,7 +3,7 @@ import { CreateInterviewDto } from './create-interview.dto';
 import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateInterviewDto extends PartialType(
-  OmitType(CreateInterviewDto, ['candidateId'] as const),
+  OmitType(CreateInterviewDto, ['candidateEmail'] as const),
 ) {
   @IsOptional()
   @IsString()

@@ -36,7 +36,7 @@ export interface CreateInterviewInput {
   description?: string;
   scheduledAt: string; // ISO string
   duration: number;
-  candidateId: string;
+  candidateEmail: string;
 }
 
 export interface UpdateInterviewInput {
