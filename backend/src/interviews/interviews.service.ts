@@ -5,18 +5,21 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { StreamService } from '../stream/stream.service';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
-import type { User } from '../generated/prisma/client';
-import { InterviewStatus } from '../generated/prisma/client';
+import { InterviewStatus, User } from '../generated/prisma/client';
 
 @Injectable()
 export class InterviewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private streamService: StreamService,
+  ) {}
 
   async create(dto: CreateInterviewDto, interviewer: User) {
     const candidate = await this.prisma.user.findFirst({
-      where: { email: { equals: dto.candidateEmail, mode: 'insensitive'}},
+      where: { email: { equals: dto.candidateEmail, mode: 'insensitive' } },
     });
 
     if (!candidate) {
@@ -30,17 +33,35 @@ export class InterviewsService {
         `${dto.candidateEmail} is not registered as a candidate.`,
       );
     }
-      return this.prisma.interview.create({
-        data: {
-          title: dto.title,
-          description: dto.description,
-          scheduledAt: new Date(dto.scheduledAt),
-          duration: dto.duration,
-          candidateId: candidate.id,
-          interviewerId: interviewer.id,
-        },
-        include: { candidate: true, interviewer: true },
-      });    
+
+    const interview = await this.prisma.interview.create({
+      data: {
+        title: dto.title,
+        description: dto.description,
+        scheduledAt: new Date(dto.scheduledAt),
+        duration: dto.duration,
+        candidateId: candidate.id,
+        interviewerId: interviewer.id,
+      },
+      include: { candidate: true, interviewer: true },
+    });
+
+    await this.streamService.upsertUsers([
+      { id: interviewer.clerkId, name: interviewer.name ?? interviewer.email },
+      { id: candidate.clerkId, name: candidate.name ?? candidate.email },
+    ]);
+
+    await this.streamService.getOrCreateCall({
+      callId: interview.id,
+      createdByUserId: interviewer.clerkId,
+      memberUserIds: [interviewer.clerkId, candidate.clerkId],
+    });
+
+    return this.prisma.interview.update({
+      where: { id: interview.id },
+      data: { streamCallId: interview.id },
+      include: { candidate: true, interviewer: true },
+    });
   }
 
   async findById(id: string, requester: User) {
@@ -94,6 +115,26 @@ export class InterviewsService {
 
     await this.prisma.interview.delete({ where: { id } });
     return { id };
+  }
+
+  async getStreamToken(id: string, requester: User) {
+    const interview = await this.findById(id, requester);
+
+    if (!interview.streamCallId) {
+      throw new NotFoundException('No Stream call associated with this interview');
+    }
+
+    await this.streamService.upsertUsers([
+      { id: requester.clerkId, name: requester.name ?? requester.email },
+    ]);
+
+    const token = this.streamService.generateUserToken(requester.clerkId);
+
+    return {
+      token,
+      callId: interview.streamCallId,
+      callType: 'default',
+    };
   }
 
   private assertParticipant(

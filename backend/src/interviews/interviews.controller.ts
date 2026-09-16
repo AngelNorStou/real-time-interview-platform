@@ -38,6 +38,11 @@ export class InterviewsController {
     return this.interviewsService.findById(id, user);
   }
 
+  @Get(':id/stream-token')
+  getStreamToken(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.interviewsService.getStreamToken(id, user);
+  }
+
   @Patch(':id')
   @Roles('INTERVIEWER', 'ADMIN')
   update(
