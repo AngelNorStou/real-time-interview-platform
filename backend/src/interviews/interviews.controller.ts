@@ -68,4 +68,9 @@ export class InterviewsController {
   start(@Param('id') id: string, @CurrentUser() user: User) {
     return this.interviewsService.start(id, user);
   } 
+
+  @Patch(':id/complete')
+  complete(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.interviewsService.complete(id, user);
+  }  
 }

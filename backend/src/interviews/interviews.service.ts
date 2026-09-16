@@ -169,4 +169,20 @@ export class InterviewsService {
       throw new ForbiddenException('Only the interviewer or an admin can do this');
     }
   }
+
+  async complete(id: string, requester: User) {
+    const interview = await this.findById(id, requester);
+
+    if (
+      interview.status === InterviewStatus.CANCELLED ||
+      interview.status === InterviewStatus.COMPLETED
+    ) {
+      return interview; 
+    }
+
+    return this.prisma.interview.update({
+      where: { id },
+      data: { status: InterviewStatus.COMPLETED },
+    });
+  }  
 }

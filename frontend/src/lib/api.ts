@@ -121,3 +121,7 @@ export const getStreamToken = (interviewId: string, token: string | null) =>
 
 export const startInterview = (interviewId: string, token: string | null) =>
   apiFetch<Interview>(`/interviews/${interviewId}/start`, token, { method: 'PATCH' });
+
+
+export const completeInterview = (interviewId: string, token: string | null) =>
+  apiFetch<Interview>(`/interviews/${interviewId}/complete`, token, { method: 'PATCH' });

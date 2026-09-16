@@ -9,13 +9,13 @@ import {
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
 import { useInitializeVideoClient } from '@/hooks/use-video-client';
 import { useLoadCall } from '@/hooks/use-load-call';
 import useStreamCall from '@/hooks/use-stream-call';
-import { startInterview } from '@/lib/api';
+import { startInterview, completeInterview } from '@/lib/api';
 import SetupUI from '@/components/call/setup-ui';
 import FlexibleCallLayout from '@/components/call/flexible-call-layout';
 
@@ -82,8 +82,25 @@ function MeetingScreen({ interviewId }: { interviewId: string }) {
   const { getToken } = useAuth();
   const [setupComplete, setSetupComplete] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
-  const { useCallCallingState } = useCallStateHooks();
+  const completedRef = useRef(false);
+
+  const { useCallCallingState, useCallEndedAt } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const callEndedAt = useCallEndedAt();
+
+  useEffect(() => {
+    if (!callEndedAt || completedRef.current) return;
+    completedRef.current = true;
+
+    (async () => {
+      try {
+        const token = await getToken();
+        await completeInterview(interviewId, token);
+      } catch (err) {
+        console.error('Failed to mark interview completed', err);
+      }
+    })();
+  }, [callEndedAt, interviewId, getToken]);
 
   async function handleSetupComplete() {
     try {
@@ -100,6 +117,10 @@ function MeetingScreen({ interviewId }: { interviewId: string }) {
     }
   }
 
+  if (callEndedAt) {
+    return <MeetingEndedScreen interviewId={interviewId} />;
+  }
+
   if (!setupComplete) {
     return <SetupUI onSetupComplete={handleSetupComplete} error={joinError} />;
   }
@@ -113,4 +134,20 @@ function MeetingScreen({ interviewId }: { interviewId: string }) {
   }
 
   return <FlexibleCallLayout interviewId={interviewId} />;
+}
+
+function MeetingEndedScreen({ interviewId }: { interviewId: string }) {
+  return (
+    <div className="mx-auto mt-12 max-w-md space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-6 text-center shadow-xl">
+      <p className="text-lg font-semibold text-cyan-200">
+        This interview has ended.
+      </p>
+      <Link
+        href={`/interviews/${interviewId}`}
+        className="inline-block rounded-full bg-cyan-600 px-5 py-2 font-medium text-white transition-colors hover:bg-cyan-500"
+      >
+        Back to interview details
+      </Link>
+    </div>
+  );
 }
