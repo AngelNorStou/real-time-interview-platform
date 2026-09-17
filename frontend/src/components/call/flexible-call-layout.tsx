@@ -14,6 +14,9 @@ import {
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import EndCallButton from './end-call-button';
+import CallToasts from './call-toasts';
+import WaitingBanner from './waiting-banner';
+import ConnectionOverlay from './connection-overlay';
 
 type CallLayoutType = 'speaker-vert' | 'speaker-horiz' | 'grid';
 
@@ -27,10 +30,13 @@ export default function FlexibleCallLayout({
 
   return (
     <div className="space-y-3 p-4">
+      <ConnectionOverlay />
+      <CallToasts />
+      <WaitingBanner />
       <CallLayoutButtons layout={layout} setLayout={setLayout} />
       <CallLayoutView layout={layout} />
       <CallControls
-        onLeave={() => router.push(`/interviews/${interviewId}/room/left`)}
+        onLeave={() => router.push(`/interviews/${interviewId}/left`)}
       />
       <EndCallButton />
     </div>

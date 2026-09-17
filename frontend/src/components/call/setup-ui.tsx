@@ -5,7 +5,7 @@ import {
   VideoPreview,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { useEffect, useState } from 'react';
+import { Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import useStreamCall from '@/hooks/use-stream-call';
 import AudioVolumeIndicator from './audio-volume-indicator';
 import PermissionPrompt from './permission-prompt';
@@ -21,17 +21,6 @@ export default function SetupUI({ onSetupComplete, error }: SetupUIProps) {
   const { useMicrophoneState, useCameraState } = useCallStateHooks();
   const micState = useMicrophoneState();
   const camState = useCameraState();
-  const [micCamDisabled, setMicCamDisabled] = useState(false);
-
-  useEffect(() => {
-    if (micCamDisabled) {
-      call.camera.disable();
-      call.microphone.disable();
-    } else {
-      call.camera.enable();
-      call.microphone.enable();
-    }
-  }, [micCamDisabled, call]);
 
   if (!micState.hasBrowserPermission || !camState.hasBrowserPermission) {
     return <PermissionPrompt />;
@@ -52,15 +41,33 @@ export default function SetupUI({ onSetupComplete, error }: SetupUIProps) {
         <DeviceSettings />
       </div>
 
-      <label className="flex items-center gap-2 font-medium text-sky-300">
-        <input
-          type="checkbox"
-          className="h-4 w-4 accent-sky-500"
-          checked={micCamDisabled}
-          onChange={(e) => setMicCamDisabled(e.target.checked)}
-        />
-        Join with mic and camera off
-      </label>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => call.camera.toggle()}
+          className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+            camState.isEnabled
+              ? 'bg-slate-700 text-slate-100 hover:bg-slate-600'
+              : 'bg-red-600 text-white hover:bg-red-700'
+          }`}
+        >
+          {camState.isEnabled ? <Video size={16} /> : <VideoOff size={16} />}
+          Camera {camState.isEnabled ? 'on' : 'off'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => call.microphone.toggle()}
+          className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+            micState.isEnabled
+              ? 'bg-slate-700 text-slate-100 hover:bg-slate-600'
+              : 'bg-red-600 text-white hover:bg-red-700'
+          }`}
+        >
+          {micState.isEnabled ? <Mic size={16} /> : <MicOff size={16} />}
+          Mic {micState.isEnabled ? 'on' : 'off'}
+        </button>
+      </div>
 
       {error && <p className="text-sm text-red-400">{error}</p>}
 

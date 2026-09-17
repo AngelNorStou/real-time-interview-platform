@@ -15,7 +15,10 @@ export function useInitializeVideoClient(interviewId: string) {
     if (!userLoaded || !user?.id) return;
 
     const userId = user.id;
-    const userName = user.fullName || user.username || user.id;
+    const userName =
+      user.fullName ||
+      user.username ||
+      user.primaryEmailAddress?.emailAddress 
     const userImage = user.imageUrl;
 
     let cancelled = false;
