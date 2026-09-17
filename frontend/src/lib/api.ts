@@ -125,3 +125,38 @@ export const startInterview = (interviewId: string, token: string | null) =>
 
 export const completeInterview = (interviewId: string, token: string | null) =>
   apiFetch<Interview>(`/interviews/${interviewId}/complete`, token, { method: 'PATCH' });
+
+export type Recommendation = 'STRONG_HIRE' | 'HIRE' | 'NO_HIRE' | 'STRONG_NO_HIRE';
+
+export interface Feedback {
+  id: string;
+  interviewId: string;
+  authorId: string;
+  rating: number;
+  technicalScore: number | null;
+  communicationScore: number | null;
+  recommendation: Recommendation | null;
+  comments: string | null;
+  createdAt: string;
+}
+
+export interface SubmitFeedbackInput {
+  rating: number;
+  technicalScore?: number;
+  communicationScore?: number;
+  recommendation?: Recommendation;
+  comments?: string;
+}
+
+export const submitFeedback = (
+  interviewId: string,
+  data: SubmitFeedbackInput,
+  token: string | null,
+) =>
+  apiFetch<Feedback>(`/interviews/${interviewId}/feedback`, token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const getFeedback = (interviewId: string, token: string | null) =>
+  apiFetch<Feedback | null>(`/interviews/${interviewId}/feedback`, token);

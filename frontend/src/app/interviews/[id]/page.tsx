@@ -1,13 +1,13 @@
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getInterview } from '@/lib/api';
+import { getInterview, getFeedback } from '@/lib/api';
 import { getNow } from '@/lib/time';
 import { StatusBadge } from '@/components/interviews/status-badge';
 import { JoinInterviewButton } from '@/components/interviews/join-interview-button';
 import { CancelInterviewButton } from '@/components/interviews/cancel-interview-button';
 import { CopyLinkButton } from '@/components/interviews/copy-link-button';
-
+import { FeedbackSection } from '@/components/interviews/feedback-section';
 
 export default async function InterviewDetailsPage({
   params,
@@ -24,6 +24,18 @@ export default async function InterviewDetailsPage({
 
   const isCancelable =
     interview.status !== 'CANCELLED' && interview.status !== 'COMPLETED';
+  const isInterviewer = interview.interviewer.clerkId === userId;
+  const feedbackUnlocked =
+    interview.status === 'IN_PROGRESS' || interview.status === 'COMPLETED';
+
+  let existingFeedback = null;
+  if (isInterviewer) {
+    try {
+      existingFeedback = await getFeedback(id, token);
+    } catch {
+      existingFeedback = null;
+    }
+  }
 
   return (
     <div className="mx-auto max-w-2xl p-6">
@@ -61,6 +73,15 @@ export default async function InterviewDetailsPage({
           {isCancelable && <CancelInterviewButton interviewId={interview.id} />}
         </div>
       </div>
+
+      {isInterviewer &&
+        (feedbackUnlocked ? (
+          <FeedbackSection interviewId={interview.id} existingFeedback={existingFeedback} />
+        ) : (
+          <p className="mt-6 text-sm text-slate-400">
+            Feedback can be submitted once the interview has started.
+          </p>
+        ))}
     </div>
   );
 }
