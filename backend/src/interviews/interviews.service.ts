@@ -28,12 +28,6 @@ export class InterviewsService {
       );
     }
 
-    if (candidate.role !== 'CANDIDATE') {
-      throw new BadRequestException(
-        `${dto.candidateEmail} is not registered as a candidate.`,
-      );
-    }
-
     const interview = await this.prisma.interview.create({
       data: {
         title: dto.title,
@@ -113,14 +107,30 @@ export class InterviewsService {
     const interview = await this.findById(id, requester);
 
     if (interview.status !== InterviewStatus.SCHEDULED) {
-      return interview; // already in progress, completed, or cancelled — no-op
+      return interview;
     }
 
     return this.prisma.interview.update({
       where: { id },
       data: { status: InterviewStatus.IN_PROGRESS },
     });
-  }  
+  }
+
+  async complete(id: string, requester: User) {
+    const interview = await this.findById(id, requester);
+
+    if (
+      interview.status === InterviewStatus.CANCELLED ||
+      interview.status === InterviewStatus.COMPLETED
+    ) {
+      return interview;
+    }
+
+    return this.prisma.interview.update({
+      where: { id },
+      data: { status: InterviewStatus.COMPLETED },
+    });
+  }
 
   async remove(id: string, requester: User) {
     const interview = await this.findById(id, requester);
@@ -169,20 +179,4 @@ export class InterviewsService {
       throw new ForbiddenException('Only the interviewer or an admin can do this');
     }
   }
-
-  async complete(id: string, requester: User) {
-    const interview = await this.findById(id, requester);
-
-    if (
-      interview.status === InterviewStatus.CANCELLED ||
-      interview.status === InterviewStatus.COMPLETED
-    ) {
-      return interview; 
-    }
-
-    return this.prisma.interview.update({
-      where: { id },
-      data: { status: InterviewStatus.COMPLETED },
-    });
-  }  
 }

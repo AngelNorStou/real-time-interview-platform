@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { ClerkAuthGuard } from '../guards/clerk-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
-import { Roles } from '../decorators/roles.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { InterviewsService } from './interviews.service';
 import { CreateInterviewDto } from './dto/create-interview.dto';
@@ -23,7 +22,6 @@ export class InterviewsController {
   constructor(private readonly interviewsService: InterviewsService) {}
 
   @Post()
-  @Roles('INTERVIEWER', 'ADMIN')
   create(@Body() dto: CreateInterviewDto, @CurrentUser() user: User) {
     return this.interviewsService.create(dto, user);
   }
@@ -44,7 +42,6 @@ export class InterviewsController {
   }
 
   @Patch(':id')
-  @Roles('INTERVIEWER', 'ADMIN')
   update(
     @Param('id') id: string,
     @Body() dto: UpdateInterviewDto,
@@ -58,19 +55,18 @@ export class InterviewsController {
     return this.interviewsService.cancel(id, user);
   }
 
-  @Delete(':id')
-  @Roles('INTERVIEWER', 'ADMIN')
-  remove(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.interviewsService.remove(id, user);
-  }
-  
   @Patch(':id/start')
   start(@Param('id') id: string, @CurrentUser() user: User) {
     return this.interviewsService.start(id, user);
-  } 
+  }
 
   @Patch(':id/complete')
   complete(@Param('id') id: string, @CurrentUser() user: User) {
     return this.interviewsService.complete(id, user);
-  }  
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.interviewsService.remove(id, user);
+  }
 }

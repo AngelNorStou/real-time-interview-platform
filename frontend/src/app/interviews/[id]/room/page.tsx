@@ -10,7 +10,7 @@ export default async function InterviewRoomPage({
 }) {
   const { id } = await params;
   const { userId, getToken } = await auth();
-  if (!userId) redirect('/sign-in');
+  if (!userId) redirect(`/sign-in?redirect_url=${encodeURIComponent(`/interviews/${id}/room`)}`);
 
   const token = await getToken();
 

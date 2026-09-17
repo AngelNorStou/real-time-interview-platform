@@ -5,7 +5,7 @@ import { DashboardClient } from './dashboard-client';
 import { getNow } from '@/lib/time';
 export default async function DashboardPage() {
   const { userId, getToken } = await auth();
-  if (!userId) redirect('/sign-in');
+  if (!userId) redirect('/sign-in?redirect_url=%2Fdashboard');
 
   const token = await getToken();
   const interviews = await getMyInterviews(token);

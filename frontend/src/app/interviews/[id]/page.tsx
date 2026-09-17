@@ -6,6 +6,8 @@ import { getNow } from '@/lib/time';
 import { StatusBadge } from '@/components/interviews/status-badge';
 import { JoinInterviewButton } from '@/components/interviews/join-interview-button';
 import { CancelInterviewButton } from '@/components/interviews/cancel-interview-button';
+import { CopyLinkButton } from '@/components/interviews/copy-link-button';
+
 
 export default async function InterviewDetailsPage({
   params,
@@ -14,7 +16,7 @@ export default async function InterviewDetailsPage({
 }) {
   const { id } = await params;
   const { userId, getToken } = await auth();
-  if (!userId) redirect('/sign-in');
+  if (!userId) redirect(`/sign-in?redirect_url=${encodeURIComponent(`/interviews/${id}`)}`);
 
   const token = await getToken();
   const interview = await getInterview(id, token);
@@ -55,6 +57,7 @@ export default async function InterviewDetailsPage({
 
         <div className="mt-6 flex items-center gap-2">
           <JoinInterviewButton interview={interview} now={now} />
+          <CopyLinkButton interviewId={interview.id} />
           {isCancelable && <CancelInterviewButton interviewId={interview.id} />}
         </div>
       </div>
