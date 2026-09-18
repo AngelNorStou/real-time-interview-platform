@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StreamService } from '../stream/stream.service';
+import { EventsGateway } from '../events/events.gateway';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
 import { InterviewStatus, User } from '../generated/prisma/client';
@@ -15,6 +16,7 @@ export class InterviewsService {
   constructor(
     private prisma: PrismaService,
     private streamService: StreamService,
+    private eventsGateway: EventsGateway,
   ) {}
 
   async create(dto: CreateInterviewDto, interviewer: User) {
@@ -110,10 +112,14 @@ export class InterviewsService {
       return interview;
     }
 
-    return this.prisma.interview.update({
+    const updated = await this.prisma.interview.update({
       where: { id },
       data: { status: InterviewStatus.IN_PROGRESS },
     });
+
+    this.eventsGateway.emitInterviewStarted(id);
+
+    return updated;
   }
 
   async complete(id: string, requester: User) {
@@ -126,10 +132,14 @@ export class InterviewsService {
       return interview;
     }
 
-    return this.prisma.interview.update({
+    const updated = await this.prisma.interview.update({
       where: { id },
       data: { status: InterviewStatus.COMPLETED },
     });
+
+    this.eventsGateway.emitInterviewEnded(id);
+
+    return updated;
   }
 
   async remove(id: string, requester: User) {

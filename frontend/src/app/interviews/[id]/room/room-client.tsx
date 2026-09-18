@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
 import { useInitializeVideoClient } from '@/hooks/use-video-client';
 import { useLoadCall } from '@/hooks/use-load-call';
+import { useInterviewSocket } from '@/hooks/use-interview-socket';
 import useStreamCall from '@/hooks/use-stream-call';
 import { startInterview, completeInterview } from '@/lib/api';
 import SetupUI from '@/components/call/setup-ui';
@@ -26,6 +27,11 @@ export function RoomClient({
   interviewId: string;
   callId: string;
 }) {
+  // Keeps this participant marked "online" via the presence socket for as
+  // long as they're on this page — including the whole time they're in
+  // the call, not just while viewing the details page.
+  useInterviewSocket(interviewId);
+
   const videoClient = useInitializeVideoClient(interviewId);
 
   if (!videoClient) {

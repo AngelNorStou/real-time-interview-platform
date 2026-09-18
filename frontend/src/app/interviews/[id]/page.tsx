@@ -8,6 +8,7 @@ import { JoinInterviewButton } from '@/components/interviews/join-interview-butt
 import { CancelInterviewButton } from '@/components/interviews/cancel-interview-button';
 import { CopyLinkButton } from '@/components/interviews/copy-link-button';
 import { FeedbackSection } from '@/components/interviews/feedback-section';
+import { PresenceIndicator } from '@/components/interviews/presence-indicator';
 
 export default async function InterviewDetailsPage({
   params,
@@ -28,6 +29,11 @@ export default async function InterviewDetailsPage({
   const feedbackUnlocked =
     interview.status === 'IN_PROGRESS' || interview.status === 'COMPLETED';
 
+  const otherPartyClerkId = isInterviewer
+    ? interview.candidate.clerkId
+    : interview.interviewer.clerkId;
+  const otherPartyLabel = isInterviewer ? 'Candidate' : 'Interviewer';
+
   let existingFeedback = null;
   if (isInterviewer) {
     try {
@@ -47,6 +53,14 @@ export default async function InterviewDetailsPage({
         <div className="flex items-start justify-between">
           <h1 className="text-xl font-bold text-cyan-100">{interview.title}</h1>
           <StatusBadge status={interview.status} />
+        </div>
+
+        <div className="mt-2">
+          <PresenceIndicator
+            interviewId={interview.id}
+            otherPartyClerkId={otherPartyClerkId}
+            otherPartyLabel={otherPartyLabel}
+          />
         </div>
 
         {interview.description && (
