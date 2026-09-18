@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getInterview, getFeedback } from '@/lib/api';
+import { getInterview, getFeedback, ApiError } from '@/lib/api';
 import { getNow } from '@/lib/time';
 import { StatusBadge } from '@/components/interviews/status-badge';
 import { JoinInterviewButton } from '@/components/interviews/join-interview-button';
@@ -20,7 +20,16 @@ export default async function InterviewDetailsPage({
   if (!userId) redirect(`/sign-in?redirect_url=${encodeURIComponent(`/interviews/${id}`)}`);
 
   const token = await getToken();
-  const interview = await getInterview(id, token);
+
+  let interview;
+  try {
+    interview = await getInterview(id, token);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) notFound();
+    if (err instanceof ApiError && err.status === 403) redirect('/unauthorized');
+    throw err;
+  }
+
   const now = getNow();
 
   const isCancelable =

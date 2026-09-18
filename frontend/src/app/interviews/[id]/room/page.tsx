@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
-import { getInterview } from '@/lib/api';
-import { RoomClient } from './room-client'
+import { redirect, notFound } from 'next/navigation';
+import { getInterview, ApiError } from '@/lib/api';
+import { RoomClient } from './room-client';
 
 export default async function InterviewRoomPage({
   params,
@@ -10,15 +10,18 @@ export default async function InterviewRoomPage({
 }) {
   const { id } = await params;
   const { userId, getToken } = await auth();
-  if (!userId) redirect(`/sign-in?redirect_url=${encodeURIComponent(`/interviews/${id}/room`)}`);
+  if (!userId)
+    redirect(`/sign-in?redirect_url=${encodeURIComponent(`/interviews/${id}/room`)}`);
 
   const token = await getToken();
 
   let interview;
   try {
     interview = await getInterview(id, token);
-  } catch {
-    redirect('/dashboard');
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) notFound();
+    if (err instanceof ApiError && err.status === 403) redirect('/unauthorized');
+    throw err;
   }
 
   if (!interview.streamCallId) {

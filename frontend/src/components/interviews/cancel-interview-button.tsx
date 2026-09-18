@@ -4,10 +4,12 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { cancelInterview } from '@/lib/api';
+import { useToast } from '@/components/toast-provider';
 
 export function CancelInterviewButton({ interviewId }: { interviewId: string }) {
   const { getToken } = useAuth();
   const router = useRouter();
+  const { showToast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -19,9 +21,12 @@ export function CancelInterviewButton({ interviewId }: { interviewId: string }) 
         setError(null);
         const token = await getToken();
         await cancelInterview(interviewId, token);
+        showToast('Interview cancelled.', 'success');
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to cancel');
+        const message = err instanceof Error ? err.message : 'Failed to cancel';
+        setError(message);
+        showToast(message, 'error');
       }
     });
   };

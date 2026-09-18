@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import { ToastProvider } from "@/components/toast-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,13 +19,15 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={inter.className}>
-          <div className="bg-white shadow-sm">
-            <Navbar />
-          </div>
+          <ToastProvider>
+            <div className="bg-white shadow-sm">
+              <Navbar />
+            </div>
 
-          <div className="bg-gradient-to-br from-blue-900 via-slate-800 to-cyan-900 min-h-screen">
-            <main className="mx-auto w-full px-3 py-6">{children}</main>
-          </div>
+            <div className="bg-gradient-to-br from-blue-900 via-slate-800 to-cyan-900 min-h-screen">
+              <main className="mx-auto w-full px-3 py-6">{children}</main>
+            </div>
+          </ToastProvider>
         </body>
       </html>
     </ClerkProvider>
