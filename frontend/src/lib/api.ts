@@ -170,3 +170,16 @@ export interface ChatTokenResponse {
 
 export const getChatToken = (interviewId: string, token: string | null) =>
   apiFetch<ChatTokenResponse>(`/interviews/${interviewId}/chat-token`, token);
+
+export interface FeedbackWithInterview extends Feedback {
+  Interview: {
+    id: string;
+    title: string;
+    scheduledAt: string;
+    candidate: { id: string; name: string | null; email: string };
+    interviewer: { id: string; name: string | null; email: string };
+  };
+}
+
+export const getMyFeedback = (token: string | null) =>
+  apiFetch<FeedbackWithInterview[]>('/feedback/me', token);

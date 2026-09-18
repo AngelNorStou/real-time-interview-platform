@@ -61,6 +61,18 @@ export class FeedbackService {
     });
   }
 
+  async findAllByAuthor(author: User) {
+    return this.prisma.feedback.findMany({
+      where: { authorId: author.id },
+      include: {
+        Interview: {
+          include: { candidate: true, interviewer: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   private async getInterviewForAuthor(interviewId: string, user: User) {
     const interview = await this.prisma.interview.findUnique({
       where: { id: interviewId },

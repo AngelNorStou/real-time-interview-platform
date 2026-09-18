@@ -39,6 +39,12 @@ export default function Navbar() {
             >
               Dashboard
             </Link>
+            <Link
+              href="/feedback"
+              className="text-cyan-200 hover:text-white transition-colors duration-200"
+            >
+              Feedback
+            </Link>
             <UserButton />
           </Show>
 
