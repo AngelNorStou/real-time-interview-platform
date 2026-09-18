@@ -160,3 +160,13 @@ export const submitFeedback = (
 
 export const getFeedback = (interviewId: string, token: string | null) =>
   apiFetch<Feedback | null>(`/interviews/${interviewId}/feedback`, token);
+
+
+export interface ChatTokenResponse {
+  token: string;
+  channelId: string;
+  channelType: string;
+}
+
+export const getChatToken = (interviewId: string, token: string | null) =>
+  apiFetch<ChatTokenResponse>(`/interviews/${interviewId}/chat-token`, token);

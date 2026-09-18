@@ -41,6 +41,11 @@ export class InterviewsController {
     return this.interviewsService.getStreamToken(id, user);
   }
 
+  @Get(':id/chat-token')
+  getChatToken(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.interviewsService.getChatToken(id, user);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

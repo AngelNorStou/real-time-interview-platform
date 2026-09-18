@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { StreamService } from '../stream/stream.service';
 import { EventsGateway } from '../events/events.gateway';
+import { ChatService } from '../chat/chat.service';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
 import { InterviewStatus, User } from '../generated/prisma/client';
@@ -17,6 +18,7 @@ export class InterviewsService {
     private prisma: PrismaService,
     private streamService: StreamService,
     private eventsGateway: EventsGateway,
+    private chatService: ChatService,
   ) {}
 
   async create(dto: CreateInterviewDto, interviewer: User) {
@@ -49,6 +51,17 @@ export class InterviewsService {
 
     await this.streamService.getOrCreateCall({
       callId: interview.id,
+      createdByUserId: interviewer.clerkId,
+      memberUserIds: [interviewer.clerkId, candidate.clerkId],
+    });
+
+    await this.chatService.upsertUsers([
+      { id: interviewer.clerkId, name: interviewer.name ?? interviewer.email },
+      { id: candidate.clerkId, name: candidate.name ?? candidate.email },
+    ]);
+
+    await this.chatService.getOrCreateChannel({
+      channelId: interview.id,
       createdByUserId: interviewer.clerkId,
       memberUserIds: [interviewer.clerkId, candidate.clerkId],
     });
@@ -167,6 +180,22 @@ export class InterviewsService {
       token,
       callId: interview.streamCallId,
       callType: 'default',
+    };
+  }
+
+  async getChatToken(id: string, requester: User) {
+    const interview = await this.findById(id, requester);
+
+    await this.chatService.upsertUsers([
+      { id: requester.clerkId, name: requester.name ?? requester.email },
+    ]);
+
+    const token = this.chatService.generateUserToken(requester.clerkId);
+
+    return {
+      token,
+      channelId: interview.id,
+      channelType: 'messaging',
     };
   }
 
