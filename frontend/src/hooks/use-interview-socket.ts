@@ -25,10 +25,7 @@ export function useInterviewSocket(interviewId: string) {
 
     async function connect() {
       const token = await getToken();
-      if (!token || cancelled) {
-        console.warn('[socket] no token available, skipping connection');
-        return;
-      }
+      if (!token || cancelled) return;
 
       const socket = io(`${SOCKET_URL}/events`, {
         auth: { token },
@@ -38,30 +35,18 @@ export function useInterviewSocket(interviewId: string) {
       socketRef.current = socket;
 
       socket.on('connect', () => {
-        console.log('[socket] connected', socket.id);
         socket.emit('join-interview', { interviewId });
       });
 
-      socket.on('connect_error', (err) => {
-        console.error('[socket] connect_error', err.message);
-      });
-
-      socket.on('disconnect', (reason) => {
-        console.log('[socket] disconnected', reason);
-      });
-
       socket.on('presence', (users: PresenceUser[]) => {
-        console.log('[socket] presence', users);
         setOnlineClerkIds(new Set(users.map((u) => u.clerkId)));
       });
 
       socket.on('user-joined', (user: PresenceUser) => {
-        console.log('[socket] user-joined', user);
         setOnlineClerkIds((prev) => new Set(prev).add(user.clerkId));
       });
 
       socket.on('user-left', (user: PresenceUser) => {
-        console.log('[socket] user-left', user);
         setOnlineClerkIds((prev) => {
           const next = new Set(prev);
           next.delete(user.clerkId);
