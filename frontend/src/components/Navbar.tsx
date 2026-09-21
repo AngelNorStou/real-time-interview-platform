@@ -1,62 +1,80 @@
-import { Show, SignInButton, UserButton } from "@clerk/nextjs";
+import { Show, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
+import {
+  Home,
+  LayoutDashboard,
+  MessagesSquare,
+  MessageSquareText,
+} from "lucide-react";
+import NavLink from "./NavLink";
 
 export default function Navbar() {
   return (
-    <header className="bg-gradient-to-r from-blue-950 via-slate-900 to-cyan-900 shadow-md">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 text-gray-100">
-        <div className="flex items-center gap-3">
-          <svg
-            className="w-7 h-7 text-cyan-400"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M14 7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7Zm2 9.387 4.684 1.562A1 1 0 0 0 22 17V7a1 1 0 0 0-1.316-.949L16 7.613v8.774Z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span className="text-lg font-semibold text-cyan-300">
-            Interview Platform
+    <header className="relative bg-[#08162b]/60 backdrop-blur-xl">
+      <nav className="mx-auto grid h-[72px] max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-6">
+        {/* Logo */}
+        <Link
+          href="/"
+          className="group flex items-center gap-3 justify-self-start"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 shadow-lg shadow-cyan-500/25 transition-transform group-hover:scale-105">
+            <MessagesSquare className="h-5 w-5 text-white" />
           </span>
-        </div>
+          <span className="hidden text-lg font-semibold tracking-tight text-white sm:inline">
+            Interview <span className="text-cyan-400">Platform</span>
+          </span>
+        </Link>
 
-        <div className="flex items-center gap-6 text-sm font-medium">
-          <Link
-            href="/"
-            className="text-cyan-200 hover:text-white transition-colors duration-200"
-          >
-            Home
-          </Link>
-
+        {/* Center pill nav (signed in only) */}
+        <div className="justify-self-center">
           <Show when="signed-in">
-            <Link
-              href="/dashboard"
-              className="text-cyan-200 hover:text-white transition-colors duration-200"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/feedback"
-              className="text-cyan-200 hover:text-white transition-colors duration-200"
-            >
-              Feedback
-            </Link>
-            <UserButton />
-          </Show>
-
-          <Show when="signed-out">
-            <SignInButton>
-              <button className="text-cyan-200 hover:text-white transition-colors duration-200">
-                Sign In
-              </button>
-            </SignInButton>
+            <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1">
+              <NavLink href="/" icon={<Home className="h-4 w-4" />}>
+                Home
+              </NavLink>
+              <NavLink
+                href="/dashboard"
+                icon={<LayoutDashboard className="h-4 w-4" />}
+              >
+                Dashboard
+              </NavLink>
+              <NavLink
+                href="/feedback"
+                icon={<MessageSquareText className="h-4 w-4" />}
+              >
+                Feedback
+              </NavLink>
+            </div>
           </Show>
         </div>
-      </div>
+
+        {/* Right side */}
+        <div className="flex items-center gap-3 justify-self-end">
+          <Show when="signed-in">
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "h-9 w-9 ring-2 ring-cyan-400/40",
+                },
+              }}
+            />
+          </Show>
+          <Show when="signed-out">
+            <Link
+              href="/sign-in"
+              className="rounded-full px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/sign-up"
+              className="rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:brightness-110"
+            >
+              Get started
+            </Link>
+          </Show>
+        </div>
+      </nav>
     </header>
   );
 }

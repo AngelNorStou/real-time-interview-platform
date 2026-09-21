@@ -20,11 +20,17 @@ export default function RootLayout({
       <html lang="en">
         <body className={inter.className}>
           <ToastProvider>
-            <div className="bg-white shadow-sm">
-              <Navbar />
-            </div>
-
-            <div className="bg-gradient-to-br from-blue-900 via-slate-800 to-cyan-900 min-h-screen">
+            <div
+              className="min-h-screen bg-[#08162b]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(60% 55% at 0% 0%, rgba(37,99,235,0.30) 0%, transparent 70%), radial-gradient(55% 50% at 100% 100%, rgba(6,182,212,0.22) 0%, transparent 70%)",
+                backgroundAttachment: "fixed",
+              }}
+            >
+              <div className="sticky top-0 z-50">
+                <Navbar />
+              </div>
               <main className="mx-auto w-full px-3 py-6">{children}</main>
             </div>
           </ToastProvider>
